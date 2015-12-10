@@ -254,7 +254,22 @@
     	      size: 0
     	    });
             $(".snowWindPower").on("change", function () {
-                $("canvas.snow").trigger("letItSnow", ["windPower", parseInt($(this).val())]);
+                $("canvas.snow").trigger("letItSnow.set", ["windPower", parseInt($(this).val())]);
+            });
+            $('#stop-snow').on('click', function () {
+                $("canvas.snow").trigger("letItSnow.stop");
+            });
+            $('#start-snow').on('click', function () {
+                $("canvas.snow").trigger("letItSnow.start");
+            });
+            $('#hide-snow').on('click', function () {
+                $("canvas.snow").trigger("letItSnow.hide");
+            });
+            $('#show-snow').on('click', function () {
+                $("canvas.snow").trigger("letItSnow.show");
+            });
+            $('#destroy-snow').on('click', function () {
+                $("canvas.snow").trigger("letItSnow.destroy");
             });
 	  });
 		
@@ -271,6 +286,13 @@
         <p class="credit">Created by <a href="http://www.thepetedesign.com">Pete R.</a>, Founder of <a href="http://www.bucketlistly.com" target="_blank">BucketListly</a></p>
         <p class="credit">You can change the wind power setting the value of the following input (implemented by <a href="https://github.com/IonicaBizau" target="_blank">Ionică Bizău</a>):</p>
         <input type="number" value="3" class="snowWindPower"> 
+        <p>
+        <button class="btn" id="stop-snow">Stop</button>
+        <button class="btn" id="start-snow">Start</button>
+        <button class="btn" id="hide-snow">Hide</button>
+        <button class="btn" id="show-snow">Show</button>
+        <button class="btn" id="destroy-snow">Destroy!</button>
+        </p>
         <div class="btns">
   	      <a class="reload btn" href="https://github.com/peachananr/let_it_snow">Download on Github</a>
   	    </div>

@@ -14,6 +14,7 @@
 
 !function($){
   
+    
   var defaults = {
     speed: 0,
     interaction: true,
@@ -25,6 +26,16 @@
     image: false
     };
 
+    (function() {
+        var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame ||
+            function(callback) {
+            return window.setTimeout(callback, 17 /*~ 1000/60*/);
+        };
+        var cancelAnimationFrame = window.cancelAnimationFrame || window.mozCancelAnimationFrame || window.webkitCancelAnimationFrame || window.msCancelAnimationFrame || window.clearTimeout;
+        window.requestAnimationFrame = requestAnimationFrame;
+        window.cancelAnimationFrame = cancelAnimationFrame;
+    })();
+
   $.fn.let_it_snow = function(options){
     var settings = $.extend({}, defaults, options),
         el = $(this),
@@ -32,6 +43,9 @@
         canvas = el.get(0),
         ctx = canvas.getContext("2d"),
         flakeCount = settings.count,
+        animationHandler = 0,
+        resizeTimeHandler = 0,
+        isDestroy = false,
         mX = -100,
         mY = -100;
     
@@ -41,15 +55,51 @@
         el.on("letItSnow.set", function (event, prop, value) {
             settings[prop] = value;
         });
+
+        el.on("letItSnow.stop", function (event) {
+            stopSnow();
+        });
+
+        el.on("letItSnow.start", function (event) {
+            snow();
+        });
+
+        el.on("letItSnow.hide", function (event) {
+            hideSnow();
+        });
         
-    (function() {
-        var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame ||
-        function(callback) {
-            window.setTimeout(callback, 1000 / 60);
-        };
-        window.requestAnimationFrame = requestAnimationFrame;
-    })();
+        el.on("letItSnow.show", function (event) {
+            snow();
+        });
+
+        el.on("letItSnow.destroy", function (event) {
+            destroySnow();
+        });
     
+    function stopSnow() {
+        if (animationHandler !== 0) {
+            cancelAnimationFrame(animationHandler);
+            animationHandler = 0;
+        }
+    }
+
+    function hideSnow() {
+        stopSnow();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function destroySnow(){
+        hideSnow();
+        flakes = [];
+        isDestroy = true;
+
+        if (settings.interaction == true) {
+            canvas.removeEventListener("mousemove", updateMouseMove);
+        }
+
+        $('#lis_flake').remove();
+    }
+
     function snow() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -122,7 +172,7 @@
             }
             
         }
-        requestAnimationFrame(snow);
+        animationHandler = requestAnimationFrame(snow);
     };
     
     
@@ -181,18 +231,34 @@
           });
       }
       
+      if (settings.interaction == true) {
+          canvas.addEventListener("mousemove", updateMouseMove);
+      }
+
+      isDestroy = false;
+
+      if (settings.image != false) {
+          $("<img src='"+settings.image+"' style='display: none' id='lis_flake'>").prependTo("body")
+      }
+
       snow();
     }
     
-    if (settings.image != false) {
-      $("<img src='"+settings.image+"' style='display: none' id='lis_flake'>").prependTo("body")
-    }
     
     init();
 
     $(window).resize(function() {
-      if(this.resizeTO) clearTimeout(this.resizeTO);
-      this.resizeTO = setTimeout(function() {
+
+      if (isDestroy) {
+          return;
+      }
+
+      if(resizeTimeHandler) {
+          clearTimeout(resizeTimeHandler);
+          resizeTimeHandler = 0;
+      }
+
+      resizeTimeHandler = setTimeout(function() {
         el2 = el.clone();
         el2.insertAfter(el);
         el.remove();
@@ -200,12 +266,11 @@
         el2.let_it_snow(settings);
       }, 200);
     });
-    
-    if (settings.interaction == true) {
-      canvas.addEventListener("mousemove", function(e) {
-          mX = e.clientX,
-          mY = e.clientY
-      });
+
+    function updateMouseMove(e){
+        mX = e.clientX,
+        mY = e.clientY;
     }
+    
   }
 }(window.jQuery);
